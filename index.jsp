@@ -3,13 +3,6 @@
 <%@page import="java.util.*" contentType="text/html; charset=UTF-8" %>
 <%@page import="java.lang.StringBuilder" contentType="text/html; charset=UTF-8" %>
 <%@page import="java.net.URLDecoder" contentType="text/html; charset=UTF-8" %>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <title>download/upload</title>
-</head>
-<body style="margin: 0; padding: 0;">
 <%!
     void recursionZip(ZipOutputStream zipOut, File file, String baseDir) throws Exception {
         if (file.isDirectory()) {
@@ -292,5 +285,3 @@
     isr.close();
     br.close();
 %>
-</body>
-</html>
